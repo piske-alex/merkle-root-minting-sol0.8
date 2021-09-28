@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "keccak": "^3.0.2",
+    "merkletreejs": "^0.2.24"
+  }
+}
