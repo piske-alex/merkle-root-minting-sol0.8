@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// eyJuYW1lIjoiME4xIC0gTWV0YWRhdGEiLCJkZXNjcmlwdGlvbiI6IlRoaXMgc2hvdWxkIE5PVCBiZSByZXZlYWxlZCBiZWZvcmUgYWxsIGFyZSBzb2xkLiBJbWFnZXMgY29udGFpbmVkIGJlbG93IiwiaW1hZ2VzIjoiMHg1MTZENTU0ODYxMzQ0QTc3NEI1MDY3NjY0ODcxNDM1ODMxNTQ3ODMyNTc2OTRBNTg2NDYzNEM2MzY1NTM3NDZGNTEzNjY1Nzg1NTU4Mzg1NDRBNkE0NjYxNjE1MSJ9
 pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
@@ -32,7 +31,7 @@ contract MerkleProof {
 }
 
 
-contract TemptusUTS is ERC721Enumerable, Ownable, MerkleProof {
+contract TempusUTS is ERC721Enumerable, Ownable, MerkleProof {
   using Strings for uint256;
 
   uint256 public constant UTS_GIFT = 0;
@@ -71,23 +70,33 @@ contract TemptusUTS is ERC721Enumerable, Ownable, MerkleProof {
     PURCHASE_LIMIT = a;
   }
 
-  function onAllowList(string memory _who, bytes32[] calldata _proof, uint index) public view returns (bool) {
+  function onAllowList(address _who, bytes32[] calldata _proof, uint index) public view returns (bool) {
     return verify(_proof, _merkleRoot, keccak256(abi.encodePacked(_who)), index);
   }
   
-  function addressToString(address _addr) public pure returns(string memory) {
-    bytes32 value = bytes32(uint256(uint160(_addr)));
-    bytes memory alphabet = "0123456789abcdef";
-
-    bytes memory str = new bytes(51);
-    str[0] = "0";
-    str[1] = "x";
-    for (uint i = 0; i < 20; i++) {
-        str[2+i*2] = alphabet[uint(uint8(value[i + 12] >> 4))];
-        str[3+i*2] = alphabet[uint(uint8(value[i + 12] & 0x0f))];
-    }
-    return string(str);
+  
+  function getLeaf(address _who) public view returns (bytes32) {
+      return keccak256(abi.encodePacked(_who));
   }
+  
+//   function addressToString(address _addr) public pure returns(string memory) {
+//     bytes32 value = bytes32(uint256(uint160(_addr)));
+//     bytes memory alphabet = "0123456789abcdef";
+
+//     bytes memory str = new bytes(51);
+//     str[0] = "0";
+//     str[1] = "x";
+//     for (uint i = 0; i < 20; i++) {
+//         str[2+i*2] = alphabet[uint(uint8(value[i + 12] >> 4))];
+//         str[3+i*2] = alphabet[uint(uint8(value[i + 12] & 0x0f))];
+//     }
+//     return string(str);
+//   }
+  
+//   function myAddressToString() public view returns(string memory) {
+      
+//             return addressToString(msg.sender);
+//   }
 
 
   /**
@@ -134,7 +143,7 @@ contract TemptusUTS is ERC721Enumerable, Ownable, MerkleProof {
   function purchaseAllowList(uint256 numberOfTokens, bytes32[] calldata _proof, uint index) external  payable {
     require(isActive, 'Contract is not active');
     require(isAllowListActive, 'Allow List is not active');
-    require(onAllowList(addressToString(msg.sender), _proof, index), 'You are not on the Allow List');
+    require(onAllowList(msg.sender, _proof, index), 'You are not on the Allow List');
     require(totalSupply() < UTS_MAX, 'All tokens have been minted');
     require(numberOfTokens <= allowListMaxMintPerTx, 'Cannot purchase this many tokens');
     require(totalPublicSupply + numberOfTokens <= allowListMaxMint, 'Purchase would exceed allowListMaxMint');
@@ -154,18 +163,18 @@ contract TemptusUTS is ERC721Enumerable, Ownable, MerkleProof {
     }
   }
 
-  function gift(address[] calldata to) external  onlyOwner {
-    require(totalSupply() < UTS_MAX, 'All tokens have been minted');
-    require(totalGiftSupply + to.length <= UTS_GIFT, 'Not enough tokens left to gift');
+//   function gift(address[] calldata to) external  onlyOwner {
+//     require(totalSupply() < UTS_MAX, 'All tokens have been minted');
+//     require(totalGiftSupply + to.length <= UTS_GIFT, 'Not enough tokens left to gift');
 
-    for(uint256 i = 0; i < to.length; i++) {
-      /// @dev We don't want our tokens to start at 0 but at 1.
-      uint256 tokenId = totalGiftSupply + 1;
+//     for(uint256 i = 0; i < to.length; i++) {
+//       /// @dev We don't want our tokens to start at 0 but at 1.
+//       uint256 tokenId = totalGiftSupply + 1;
 
-      totalGiftSupply += 1;
-      _safeMint(to[i], tokenId);
-    }
-  }
+//       totalGiftSupply += 1;
+//       _safeMint(to[i], tokenId);
+//     }
+//   }
 
   function setIsActive(bool _isActive) external  onlyOwner {
     isActive = _isActive;
@@ -183,7 +192,7 @@ contract TemptusUTS is ERC721Enumerable, Ownable, MerkleProof {
     proof = proofString;
   }
 
-  function withdraw() external  onlyOwner {
+  function withdraw() external {
     uint256 balance = address(this).balance;
 
     payable(_paymentSplitter).transfer(balance);

@@ -9,11 +9,13 @@ const proofer = {
 const web3 = new Web3('https://rinkeby.infura.io/v3/fad40c6991a64c0db19de9420e2ace3f')
 const uts = new web3.eth.Contract(abi, '0x989CD2a23E7e5547a8acC884A84FA75fE95A9b0e');
 (async () => {
-    const addresses = ['0xb9942a2b7ab89c1c3a7330c664897d4ea9ae2a88',
-    '0x673394895b3654e81aeb229412c2a8cf7955d7b4',
-    '0x058fdbe3c0f5dd1e93e72fc3120e3143a98c9c35',
-    '0x45402842edb8f2ea42b8886dac45bceee265223d',
-    '0xcd6ac1438ca44b8bed81713d5c24934a34cb0dc9']
+    const addresses = ["0xB9942A2b7Ab89C1c3A7330C664897d4eA9aE2A88",
+    "0x4af1e7971113C424Ba9b1222aE7b447FCa2dCAc6",
+    "0xE9353b6f1FF596aa31A344464B5B5022196A3Cbe",
+    "0x673394895B3654e81aEb229412c2a8Cf7955d7b4",
+    "0x058fdbE3c0f5dD1e93e72fC3120E3143a98c9c35",
+    "0x45402842eDB8f2eA42B8886dac45bcEEE265223D",
+    "0xCd6aC1438CA44B8BED81713D5c24934A34CB0dc9"]
 let leaves = addresses.map(e=>uts.methods.getLeaf(e).call())
 leaves = await Promise.all(leaves)
 leaves = leaves.map(e=>e.slice(2))
@@ -25,7 +27,7 @@ for (let leafIndex in leaves) {
     const leaf = leaves[leafIndex]
     const proof = tree.getHexProof(leaf)
     address = addresses[leafIndex]
-    proofer.proofs[address] = {
+    proofer.proofs[address.toLowerCase()] = {
         index: parseInt(leafIndex),
         proof
     }
